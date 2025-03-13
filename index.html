@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8c5c5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .logo {
+            max-width: 150px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+        h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        input[type="text"], input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: block;
+            text-align: center;
+        }
+        button {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover {
+            background-color: #ff5252;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .loading-icon {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.imgur.com/1uff3gK.jpeg" class="logo" alt="Emma Learning Center Logo">
+        <h2>Assignment Upload</h2>
+        <label for="studentName">Your Name:</label>
+        <input type="text" id="studentName" placeholder="Enter your name" required>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">🚀 Upload</button>
+        <p id="status"></p>
+    </div>
+    <script>
+        async function uploadFile() {
+            const name = document.getElementById("studentName").value.trim();
+            const fileInput = document.getElementById("fileInput").files[0];
+            if (!name || !fileInput) {
+                document.getElementById("status").innerHTML = "❌ Please enter your name and select a file.";
+                return;
+            }
+            document.getElementById("status").innerHTML = `<span class="loading-icon">🔄</span> Uploading...`;
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput);
+            reader.onload = async function () {
+                const base64String = reader.result.split(',')[1];
+                const formData = new FormData();
+                formData.append("student", name);
+                formData.append("contents", base64String);
+                formData.append("type", fileInput.type);
+                formData.append("filename", fileInput.name);
+                try {
+                    let response = await fetch("https://script.google.com/macros/s/AKfycbwJtnu9HrpIHxw5QX-dGMPXfN_2Sl3Khj3AQbhNjiwJo8bmLbXZLHcGjpr4gKFdchnw/exec", {
+                        method: "POST",
+                        body: formData
+                    });
+                    let result = await response.json();
+                    if (result.success) {
+                        document.getElementById("status").innerHTML = `✅ Upload successful! <br> 📎 <a href="${result.url}" target="_blank">View File</a>`;
+                    } else {
+                        document.getElementById("status").innerText = "❌ Upload failed: " + result.error;
+                    }
+                } catch (error) {
+                    document.getElementById("status").innerText = "❌ Error: " + error.message;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
